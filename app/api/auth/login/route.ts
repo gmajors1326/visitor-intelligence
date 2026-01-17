@@ -14,7 +14,15 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
-    const { password, twoFactorCode, captchaToken } = await request.json();
+    const body = await request.json();
+    const password = body.password;
+    const twoFactorCode = body.twoFactorCode;
+    const captchaToken = body.captchaToken;
+    
+    if (!password) {
+      return NextResponse.json({ error: 'Password required' }, { status: 400 });
+    }
+
     const clientId = getClientIdentifier(request);
     const userAgent = request.headers.get('user-agent') || undefined;
 
