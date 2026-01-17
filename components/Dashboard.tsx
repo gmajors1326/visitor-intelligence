@@ -172,7 +172,27 @@ export default function Dashboard() {
             </div>
 
             <div className={styles.section}>
-              <h2 className={styles.sectionTitle}>Recent Alerts</h2>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <h2 className={styles.sectionTitle}>Recent Alerts</h2>
+                {alerts.length > 0 && (
+                  <button
+                    className={styles.button}
+                    onClick={async () => {
+                      if (confirm(`Are you sure you want to move all ${alerts.length} alerts to trash?`)) {
+                        try {
+                          await fetch('/api/alerts/clear', { method: 'POST' });
+                          setAlerts([]);
+                        } catch (error) {
+                          alert('Failed to clear alerts');
+                        }
+                      }
+                    }}
+                    style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
+                  >
+                    Clear All
+                  </button>
+                )}
+              </div>
               <div className={styles.card}>
                 {alerts.length === 0 ? (
                   <p style={{ color: 'var(--text-tertiary)' }}>No unread alerts</p>
@@ -255,7 +275,21 @@ export default function Dashboard() {
             </div>
 
             <div className={styles.section}>
-              <h2 className={styles.sectionTitle}>Top Countries</h2>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <h2 className={styles.sectionTitle}>Top Countries</h2>
+                {stats.topCountries.length > 0 && (
+                  <button
+                    className={styles.button}
+                    onClick={() => {
+                      // Refresh stats to clear the view
+                      fetchStats();
+                    }}
+                    style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
+                  >
+                    Refresh
+                  </button>
+                )}
+              </div>
               <div className={styles.card}>
                 <table className={styles.table}>
                   <thead>
