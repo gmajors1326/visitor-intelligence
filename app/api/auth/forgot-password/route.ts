@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { hash } from 'bcryptjs';
 import crypto from 'crypto';
-import { checkRateLimit, getClientIdentifier } from '@/lib/utils/rate-limit';
+import { checkRateLimitRedis, getClientIdentifier } from '@/lib/utils/rate-limit-redis';
+import { verifyCaptcha } from '@/lib/utils/captcha';
+import { sendPasswordResetEmail } from '@/lib/utils/email';
+import { logAuthEvent } from '@/lib/utils/logging';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,12 +12,29 @@ export const dynamic = 'force-dynamic';
 const resetTokens = new Map<string, { token: string; expiresAt: number }>();
 
 export async function POST(request: NextRequest) {
-  // Rate limiting for forgot password (3 requests per hour)
-  const clientId = getClientIdentifier(request);
-  const rateLimit = checkRateLimit(`forgot-password:${clientId}`, {
-    windowMs: 60 * 60 * 1000, // 1 hour
-    maxRequests: 3,
-  });
+  try {
+    const { email, captchaToken } = await request.json();
+    
+    // Verify CAPTCHA if provided
+    if (captchaToken) {
+      const captchaValid = await verifyCaptcha(captchaToken);
+      if (!captchaValid) {
+        return NextResponse.json(
+          {
+            success: true, // Return success to prevent enumeration
+            message: 'If the email exists, a password reset link has been sent.',
+          },
+          { status: 200 }
+        );
+      }
+    }
+
+    // Rate limiting for forgot password (3 requests per hour)
+    const clientId = getClientIdentifier(request);
+    const rateLimit = await checkRateLimitRedis(`forgot-password:${clientId}`, {
+      windowMs: 60 * 60 * 1000, // 1 hour
+      maxRequests: 3,
+    });
 
   if (!rateLimit.allowed) {
     return NextResponse.json(
@@ -66,15 +86,21 @@ export async function POST(request: NextRequest) {
     // Store token (in production, store in database)
     resetTokens.set(resetToken, { token: resetToken, expiresAt });
 
-    // In production, send email with reset link
+    // Send email with reset link
     const resetUrl = `${request.nextUrl.origin}/reset-password-token?token=${resetToken}`;
-
-    // TODO: Send email with reset link
-    // await sendEmail({
-    //   to: email,
-    //   subject: 'Password Reset Request',
-    //   html: `Click here to reset your password: <a href="${resetUrl}">${resetUrl}</a>`
-    // });
+    
+    try {
+      await sendPasswordResetEmail(email, resetUrl);
+      logAuthEvent({
+        type: 'password_reset',
+        ip: clientId,
+        email: email,
+        timestamp: new Date(),
+      });
+    } catch (emailError) {
+      console.error('Failed to send password reset email:', emailError);
+      // Still return success to prevent enumeration
+    }
 
     // In development, return the reset URL for testing
     // In production, only return generic success message

@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { hash } from 'bcryptjs';
+import { hash, compare } from 'bcryptjs';
 import { getResetToken, deleteResetToken } from '../forgot-password/route';
-import { checkRateLimit, getClientIdentifier } from '@/lib/utils/rate-limit';
+import { checkRateLimitRedis, getClientIdentifier } from '@/lib/utils/rate-limit-redis';
+import { db } from '@/lib/db';
+import { adminSettings } from '@/lib/db/schema';
+import { eq } from 'drizzle-orm';
 
 export const dynamic = 'force-dynamic';
 
@@ -42,7 +45,7 @@ export async function POST(request: NextRequest) {
   try {
     // Rate limiting for password reset (5 attempts per hour)
     const clientId = getClientIdentifier(request);
-    const rateLimit = checkRateLimit(`reset-password:${clientId}`, {
+    const rateLimit = await checkRateLimitRedis(`reset-password:${clientId}`, {
       windowMs: 60 * 60 * 1000, // 1 hour
       maxRequests: 5,
     });
@@ -89,8 +92,43 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Token expired' }, { status: 400 });
     }
 
+    // Check password history (prevent reusing last 5 passwords)
+    const settings = await db.select().from(adminSettings).limit(1);
+    const adminConfig = settings[0];
+    const passwordHistory = (adminConfig?.passwordHistory as string[]) || [];
+    
+    // Check if new password matches any previous password
+    for (const oldHash of passwordHistory) {
+      const matches = await compare(newPassword, oldHash);
+      if (matches) {
+        return NextResponse.json(
+          { error: 'You cannot reuse a recently used password' },
+          { status: 400 }
+        );
+      }
+    }
+
     // Generate new password hash
     const newHash = await hash(newPassword, 10);
+
+    // Update password history (keep last 5)
+    const updatedHistory = [newHash, ...passwordHistory].slice(0, 5);
+
+    // Update admin settings
+    if (adminConfig) {
+      await db
+        .update(adminSettings)
+        .set({
+          passwordHistory: updatedHistory as any,
+          lastPasswordChange: new Date(),
+        })
+        .where(eq(adminSettings.id, adminConfig.id));
+    } else {
+      await db.insert(adminSettings).values({
+        passwordHistory: updatedHistory as any,
+        lastPasswordChange: new Date(),
+      });
+    }
 
     // Delete used token
     deleteResetToken(token);

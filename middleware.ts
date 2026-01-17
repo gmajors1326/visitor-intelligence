@@ -28,6 +28,7 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/sessions') ||
     request.nextUrl.pathname.startsWith('/digests') ||
     request.nextUrl.pathname.startsWith('/trash') ||
+    request.nextUrl.pathname.startsWith('/settings') ||
     request.nextUrl.pathname.startsWith('/reset-password') ||
     request.nextUrl.pathname === '/';
 

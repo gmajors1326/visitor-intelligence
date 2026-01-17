@@ -111,5 +111,20 @@ export type Alert = typeof alerts.$inferSelect;
 export type NewAlert = typeof alerts.$inferInsert;
 export type HeatmapData = typeof heatmapData.$inferSelect;
 export type NewHeatmapData = typeof heatmapData.$inferInsert;
+export const adminSettings = pgTable('admin_settings', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  twoFactorSecret: text('two_factor_secret'),
+  twoFactorEnabled: boolean('two_factor_enabled').default(false),
+  backupCodes: jsonb('backup_codes'), // Array of backup codes
+  passwordHistory: jsonb('password_history'), // Array of password hashes (last 5)
+  lastPasswordChange: timestamp('last_password_change'),
+  sessionTimeout: integer('session_timeout').default(60 * 60 * 24 * 7), // 7 days in seconds
+  allowedIPs: jsonb('allowed_ips'), // Array of allowed IP addresses (optional)
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export type AdminSettings = typeof adminSettings.$inferSelect;
+export type NewAdminSettings = typeof adminSettings.$inferInsert;
 export type DailyDigest = typeof dailyDigests.$inferSelect;
 export type NewDailyDigest = typeof dailyDigests.$inferInsert;

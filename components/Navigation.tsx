@@ -9,6 +9,7 @@ const navItems = [
   { href: '/sessions', label: 'Sessions' },
   { href: '/digests', label: 'Digests' },
   { href: '/trash', label: 'Trash' },
+  { href: '/settings', label: 'Settings' },
 ];
 
 export default function Navigation() {
