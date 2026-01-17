@@ -1,5 +1,4 @@
 import { authenticator } from 'otplib';
-import QRCode from 'qrcode';
 
 // Configure TOTP
 authenticator.options = {
