@@ -54,13 +54,33 @@ export default function SessionsPage() {
       <div className={styles.container}>
         <header className={styles.header}>
         <h1 className={styles.title}>Sessions</h1>
-        <div>
-          <button
-            className={`${styles.button} ${hotOnly ? styles.buttonPrimary : ''}`}
-            onClick={() => setHotOnly(!hotOnly)}
-          >
-            {hotOnly ? 'Show All' : 'Hot Only'}
-          </button>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <input
+              type="checkbox"
+              checked={hotOnly}
+              onChange={(e) => setHotOnly(e.target.checked)}
+            />
+            Hot Sessions Only
+          </label>
+          {sessions.length > 0 && (
+            <button
+              className={styles.button}
+              onClick={async () => {
+                if (confirm(`Are you sure you want to move all ${sessions.length} sessions to trash?`)) {
+                  try {
+                    await fetch('/api/sessions/clear', { method: 'POST' });
+                    fetchSessions();
+                  } catch (error) {
+                    alert('Failed to clear sessions');
+                  }
+                }
+              }}
+              style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
+            >
+              Clear All
+            </button>
+          )}
         </div>
       </header>
 
