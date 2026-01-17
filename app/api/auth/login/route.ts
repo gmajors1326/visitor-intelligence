@@ -68,8 +68,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { password } = await request.json();
-
     if (!password) {
       return NextResponse.json({ error: 'Password required' }, { status: 400 });
     }
