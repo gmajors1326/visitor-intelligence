@@ -10,8 +10,6 @@ export async function GET(request: NextRequest) {
     const severity = searchParams.get('severity');
     const limit = parseInt(searchParams.get('limit') || '50');
 
-    let query = db.select().from(alerts).orderBy(desc(alerts.createdAt)).limit(limit);
-
     const conditions = [];
     if (isRead !== null) {
       conditions.push(eq(alerts.isRead, isRead === 'true'));
@@ -20,14 +18,13 @@ export async function GET(request: NextRequest) {
       conditions.push(eq(alerts.severity, severity));
     }
 
+    let query = db.select().from(alerts);
+    
     if (conditions.length > 0) {
-      query = db
-        .select()
-        .from(alerts)
-        .where(and(...conditions))
-        .orderBy(desc(alerts.createdAt))
-        .limit(limit);
+      query = query.where(and(...conditions));
     }
+    
+    query = query.orderBy(desc(alerts.createdAt)).limit(limit);
 
     const result = await query;
     return NextResponse.json({ alerts: result });

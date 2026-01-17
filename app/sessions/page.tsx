@@ -24,7 +24,7 @@ export default function SessionsPage() {
 
   useEffect(() => {
     fetchSessions();
-  }, [hotOnly]);
+  }, [hotOnly]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchSessions = async () => {
     try {
