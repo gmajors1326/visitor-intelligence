@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { dailyDigests, visitors, sessions } from '@/lib/db/schema';
 import { eq, gte, sql, desc, count, and } from 'drizzle-orm';
