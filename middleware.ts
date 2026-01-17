@@ -12,6 +12,30 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Allow login page and auth API routes (skip password check)
+  if (
+    request.nextUrl.pathname === '/login' ||
+    request.nextUrl.pathname.startsWith('/api/auth')
+  ) {
+    return NextResponse.next();
+  }
+
+  // Password protection - check authentication for dashboard and admin routes
+  const isProtectedRoute = 
+    request.nextUrl.pathname.startsWith('/dashboard') ||
+    request.nextUrl.pathname.startsWith('/sessions') ||
+    request.nextUrl.pathname.startsWith('/digests') ||
+    request.nextUrl.pathname === '/';
+
+  if (isProtectedRoute) {
+    const authCookie = request.cookies.get('admin_auth');
+    if (!authCookie || authCookie.value !== 'authenticated') {
+      const loginUrl = new URL('/login', request.url);
+      loginUrl.searchParams.set('redirect', request.nextUrl.pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
   // Log the request asynchronously via internal API route
   // This is Edge-safe and doesn't block the response
   const logUrl = new URL('/api/internal/log-visit', request.url);

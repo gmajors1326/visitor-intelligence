@@ -119,9 +119,18 @@ export default function Dashboard() {
     <div className={styles.container}>
       <header className={styles.header}>
         <h1 className={styles.title}>Visitor Intelligence Dashboard</h1>
-        <div>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
           <button className={`${styles.button} ${styles.buttonPrimary}`} onClick={() => window.location.reload()}>
             Refresh
+          </button>
+          <button
+            className={styles.button}
+            onClick={async () => {
+              await fetch('/api/auth/logout', { method: 'POST' });
+              window.location.href = '/login';
+            }}
+          >
+            Logout
           </button>
         </div>
       </header>
