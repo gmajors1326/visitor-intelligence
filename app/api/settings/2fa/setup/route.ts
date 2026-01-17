@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 
 export async function POST() {
   try {
-    const adminEmail = process.env.ADMIN_EMAIL || 'gmajors1326@gmail.com.com';
+    const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com';
     const setup = generateTwoFactorSecret(adminEmail);
     const qrCode = await generateQRCode(setup.qrCodeUrl);
     const backupCodes = generateBackupCodes();
