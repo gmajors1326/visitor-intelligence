@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { hash, compare } from 'bcryptjs';
-import { getResetToken, deleteResetToken } from '../forgot-password/route';
+import { getResetToken, deleteResetToken } from '@/lib/utils/reset-tokens';
 import { checkRateLimitRedis, getClientIdentifier } from '@/lib/utils/rate-limit-redis';
 import { db } from '@/lib/db';
 import { adminSettings } from '@/lib/db/schema';
