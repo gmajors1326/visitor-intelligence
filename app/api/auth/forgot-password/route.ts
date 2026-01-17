@@ -15,7 +15,29 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Email required' }, { status: 400 });
     }
 
-    // Generate reset token
+    // Validate email against admin email from environment
+    const adminEmail = process.env.ADMIN_EMAIL;
+    
+    if (!adminEmail) {
+      console.error('ADMIN_EMAIL not configured');
+      // Return generic success message to prevent email enumeration
+      return NextResponse.json({
+        success: true,
+        message: 'If the email exists, a password reset link has been sent.',
+      });
+    }
+
+    // Check if email matches admin email (case-insensitive)
+    if (email.toLowerCase().trim() !== adminEmail.toLowerCase().trim()) {
+      // Return generic success message to prevent email enumeration attacks
+      // Don't reveal whether the email exists or not
+      return NextResponse.json({
+        success: true,
+        message: 'If the email exists, a password reset link has been sent.',
+      });
+    }
+
+    // Email matches - generate reset token
     const resetToken = crypto.randomBytes(32).toString('hex');
     const expiresAt = Date.now() + 60 * 60 * 1000; // 1 hour from now
 
@@ -23,7 +45,6 @@ export async function POST(request: NextRequest) {
     resetTokens.set(resetToken, { token: resetToken, expiresAt });
 
     // In production, send email with reset link
-    // For now, return the reset link in the response (you should remove this in production)
     const resetUrl = `${request.nextUrl.origin}/reset-password-token?token=${resetToken}`;
 
     // TODO: Send email with reset link
@@ -33,15 +54,21 @@ export async function POST(request: NextRequest) {
     //   html: `Click here to reset your password: <a href="${resetUrl}">${resetUrl}</a>`
     // });
 
+    // In development, return the reset URL for testing
+    // In production, only return generic success message
     return NextResponse.json({
       success: true,
-      message: 'Password reset link has been sent to your email.',
-      // Remove this in production - only for development/testing
+      message: 'If the email exists, a password reset link has been sent.',
+      // Only show reset URL in development mode
       resetUrl: process.env.NODE_ENV === 'development' ? resetUrl : undefined,
     });
   } catch (error) {
     console.error('Forgot password error:', error);
-    return NextResponse.json({ error: 'Failed to process request' }, { status: 500 });
+    // Return generic error to prevent information leakage
+    return NextResponse.json({ 
+      success: true,
+      message: 'If the email exists, a password reset link has been sent.',
+    }, { status: 200 });
   }
 }
 

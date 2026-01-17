@@ -22,6 +22,7 @@ if (fs.existsSync(envExamplePath)) {
 DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@aws-1-us-east-1.pooler.supabase.com:6543/postgres
 
 # Admin auth
+ADMIN_EMAIL=your-admin@email.com
 ADMIN_PASSWORD_HASH=PASTE_YOUR_BCRYPT_HASH
 
 # Internal security

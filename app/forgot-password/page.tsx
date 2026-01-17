@@ -27,12 +27,25 @@ export default function ForgotPasswordPage() {
       const data = await res.json();
 
       if (res.ok) {
-        setSuccess(data.message || 'Password reset link has been sent. Check your email.');
+        // Always show success message (prevents email enumeration)
+        setSuccess(data.message || 'If the email exists, a password reset link has been sent.');
+        
+        // In development, show the reset URL if provided
+        if (data.resetUrl) {
+          setSuccess(
+            `Password reset link generated:\n\n${data.resetUrl}\n\n(This is shown in development mode only)`
+          );
+        }
+        
+        setTimeout(() => {
+          router.push('/login');
+        }, 5000);
+      } else {
+        // Even on error, show generic message to prevent enumeration
+        setSuccess('If the email exists, a password reset link has been sent.');
         setTimeout(() => {
           router.push('/login');
         }, 3000);
-      } else {
-        setError(data.error || 'Failed to send reset link');
       }
     } catch (err) {
       setError('Failed to send reset link');
