@@ -12,9 +12,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Allow login page and auth API routes (skip password check)
+  // Allow login page, forgot password, reset password pages and auth API routes (skip password check)
   if (
     request.nextUrl.pathname === '/login' ||
+    request.nextUrl.pathname === '/forgot-password' ||
+    request.nextUrl.pathname.startsWith('/reset-password-token') ||
     request.nextUrl.pathname.startsWith('/api/auth')
   ) {
     return NextResponse.next();
