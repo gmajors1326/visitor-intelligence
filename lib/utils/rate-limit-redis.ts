@@ -76,7 +76,7 @@ export async function checkRateLimitRedis(
   }
 }
 
-export function getClientIdentifier(request: Request): string {
+export function getClientIdentifier(request: Request | { headers: { get: (key: string) => string | null } }): string {
   // Use IP address for rate limiting
   const forwarded = request.headers.get('x-forwarded-for');
   const ip = forwarded ? forwarded.split(',')[0].trim() : 'unknown';
