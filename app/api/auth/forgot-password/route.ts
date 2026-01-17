@@ -1,15 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { hash } from 'bcryptjs';
 import crypto from 'crypto';
 import { checkRateLimitRedis, getClientIdentifier } from '@/lib/utils/rate-limit-redis';
 import { verifyCaptcha } from '@/lib/utils/captcha';
 import { sendPasswordResetEmail } from '@/lib/utils/email';
 import { logAuthEvent } from '@/lib/utils/logging';
+import { setResetToken } from '@/lib/utils/reset-tokens';
 
 export const dynamic = 'force-dynamic';
-
-// In-memory store for reset tokens (in production, use Redis or database)
-const resetTokens = new Map<string, { token: string; expiresAt: number }>();
 
 export async function POST(request: NextRequest) {
   try {
@@ -82,7 +79,7 @@ export async function POST(request: NextRequest) {
     const expiresAt = Date.now() + 60 * 60 * 1000; // 1 hour from now
 
     // Store token (in production, store in database)
-    resetTokens.set(resetToken, { token: resetToken, expiresAt });
+    setResetToken(resetToken, expiresAt);
 
     // Send email with reset link
     const resetUrl = `${request.nextUrl.origin}/reset-password-token?token=${resetToken}`;
@@ -116,13 +113,4 @@ export async function POST(request: NextRequest) {
       message: 'If the email exists, a password reset link has been sent.',
     }, { status: 200 });
   }
-}
-
-// Export token store for validation
-export function getResetToken(token: string): { token: string; expiresAt: number } | undefined {
-  return resetTokens.get(token);
-}
-
-export function deleteResetToken(token: string): void {
-  resetTokens.delete(token);
 }

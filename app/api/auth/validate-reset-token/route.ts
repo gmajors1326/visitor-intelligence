@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getResetToken } from '../forgot-password/route';
+import { getResetToken } from '@/lib/utils/reset-tokens';
 
 export const dynamic = 'force-dynamic';
 
