@@ -5,6 +5,13 @@ import { eq, gte, sql, desc, count, and } from 'drizzle-orm';
 
 export async function GET() {
   try {
+    if (!process.env.DATABASE_URL) {
+      return NextResponse.json(
+        { error: 'DATABASE_URL is not configured. Please set it in Vercel environment variables.' },
+        { status: 500 }
+      );
+    }
+
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const last24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000);
@@ -78,6 +85,13 @@ export async function GET() {
     });
   } catch (error) {
     console.error('Error fetching stats:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json(
+      { 
+        error: 'Failed to fetch stats',
+        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+      },
+      { status: 500 }
+    );
   }
 }
