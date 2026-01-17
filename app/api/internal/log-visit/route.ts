@@ -7,6 +7,9 @@ import { calculateSessionScore, isHotSession } from '@/lib/utils/scoring';
 import { hashIP, hashUserAgent } from '@/lib/utils/hash';
 import { eq, desc, and } from 'drizzle-orm';
 
+// Dynamic route to prevent static optimization
+export const dynamic = 'force-dynamic';
+
 // Note: Using Node.js runtime for Drizzle ORM compatibility
 // Edge runtime is not compatible with Drizzle's Postgres driver
 

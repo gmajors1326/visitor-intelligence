@@ -4,6 +4,9 @@ import { visitors, sessions } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { getSessionId } from '@/lib/utils/session';
 
+// Dynamic route to prevent static optimization
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   try {
     const { consent } = await request.json();

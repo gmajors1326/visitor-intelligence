@@ -3,6 +3,9 @@ import { db } from '@/lib/db';
 import { dailyDigests, visitors, sessions } from '@/lib/db/schema';
 import { eq, gte, sql, desc, count, and } from 'drizzle-orm';
 
+// Dynamic route to prevent static optimization
+export const dynamic = 'force-dynamic';
+
 export async function POST() {
   try {
     const today = new Date();

@@ -3,6 +3,9 @@ import { db } from '@/lib/db';
 import { visitors, sessions, alerts } from '@/lib/db/schema';
 import { eq, gte, sql, desc, count, and } from 'drizzle-orm';
 
+// Dynamic route to prevent static optimization
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     if (!process.env.DATABASE_URL) {

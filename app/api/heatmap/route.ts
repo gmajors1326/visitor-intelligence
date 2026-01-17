@@ -3,6 +3,9 @@ import { db } from '@/lib/db';
 import { heatmapData } from '@/lib/db/schema';
 import { getSessionId } from '@/lib/utils/session';
 
+// Dynamic route to prevent static optimization
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   try {
     const sessionId = await getSessionId() || request.cookies.get('visitor_session')?.value;

@@ -3,6 +3,9 @@ import { db } from '@/lib/db';
 import { alerts } from '@/lib/db/schema';
 import { desc, eq, and } from 'drizzle-orm';
 
+// Dynamic route to prevent static optimization
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
