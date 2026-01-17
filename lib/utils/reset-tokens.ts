@@ -30,7 +30,10 @@ export function cleanupExpiredTokens(): void {
   }
 }
 
-// Run cleanup every 5 minutes
-if (typeof setInterval !== 'undefined') {
-  setInterval(cleanupExpiredTokens, 5 * 60 * 1000);
+// Run cleanup every 5 minutes (only in Node.js environment, not in serverless)
+// In serverless environments, cleanup happens on-demand
+if (typeof process !== 'undefined' && process.env && !process.env.VERCEL) {
+  if (typeof setInterval !== 'undefined') {
+    setInterval(cleanupExpiredTokens, 5 * 60 * 1000);
+  }
 }

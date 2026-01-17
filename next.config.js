@@ -48,23 +48,24 @@ const nextConfig = {
       },
     ];
   },
-  // Redirect HTTP to HTTPS
-  async redirects() {
-    return [
-      {
-        source: '/:path*',
-        has: [
-          {
-            type: 'header',
-            key: 'x-forwarded-proto',
-            value: 'http',
-          },
-        ],
-        destination: 'https://:path*',
-        permanent: true,
-      },
-    ];
-  },
+  // Redirect HTTP to HTTPS (Vercel handles this automatically, but we can add custom redirects here if needed)
+  // Note: Vercel automatically redirects HTTP to HTTPS, so this is optional
+  // async redirects() {
+  //   return [
+  //     {
+  //       source: '/:path*',
+  //       has: [
+  //         {
+  //           type: 'header',
+  //           key: 'x-forwarded-proto',
+  //           value: 'http',
+  //         },
+  //       ],
+  //       destination: 'https://:path*',
+  //       permanent: true,
+  //     },
+  //   ];
+  // },
 }
 
 module.exports = nextConfig

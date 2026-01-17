@@ -29,7 +29,9 @@ export function generateTwoFactorSecret(email: string): TwoFactorSetup {
 
 export async function generateQRCode(otpAuthUrl: string): Promise<string> {
   try {
-    return await QRCode.toDataURL(otpAuthUrl);
+    // Use dynamic import for server-side compatibility
+    const qrcode = await import('qrcode');
+    return await qrcode.default.toDataURL(otpAuthUrl);
   } catch (error) {
     console.error('QR code generation error:', error);
     throw new Error('Failed to generate QR code');
