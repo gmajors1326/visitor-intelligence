@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import styles from '../login/login.module.css';
 
-export default function ResetPasswordTokenPage() {
+function ResetPasswordForm() {
   const [token, setToken] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -66,10 +66,17 @@ export default function ResetPasswordTokenPage() {
       const data = await res.json();
 
       if (res.ok) {
-        setSuccess('Password reset successfully! Redirecting to login...');
-        setTimeout(() => {
-          router.push('/login');
-        }, 2000);
+        if (data.newHash) {
+          // Show the hash so user can update it in Vercel
+          setSuccess(
+            `Password reset successful! Copy this hash and update ADMIN_PASSWORD_HASH in Vercel:\n\n${data.newHash}\n\nThen redeploy your project.`
+          );
+        } else {
+          setSuccess('Password reset successfully! Redirecting to login...');
+          setTimeout(() => {
+            router.push('/login');
+          }, 2000);
+        }
       } else {
         setError(data.error || 'Failed to reset password');
       }
@@ -131,5 +138,19 @@ export default function ResetPasswordTokenPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function ResetPasswordTokenPage() {
+  return (
+    <Suspense fallback={
+      <div className={styles.container}>
+        <div className={styles.loginBox}>
+          <div className={styles.loading}>Loading...</div>
+        </div>
+      </div>
+    }>
+      <ResetPasswordForm />
+    </Suspense>
   );
 }
