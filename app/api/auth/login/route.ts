@@ -68,10 +68,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!password) {
-      return NextResponse.json({ error: 'Password required' }, { status: 400 });
-    }
-
     const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH;
 
     if (!adminPasswordHash) {
