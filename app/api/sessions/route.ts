@@ -9,19 +9,22 @@ export async function GET(request: NextRequest) {
     const hotOnly = searchParams.get('hot') === 'true';
     const limit = parseInt(searchParams.get('limit') || '50');
 
-    let query = db.select().from(sessions).orderBy(desc(sessions.lastSeen)).limit(limit);
-
     if (hotOnly) {
       const last24Hours = new Date(Date.now() - 24 * 60 * 60 * 1000);
-      query = db
+      const result = await db
         .select()
         .from(sessions)
         .where(and(eq(sessions.isHot, true), gte(sessions.lastSeen, last24Hours)))
         .orderBy(desc(sessions.lastSeen))
         .limit(limit);
+      return NextResponse.json({ sessions: result });
     }
 
-    const result = await query;
+    const result = await db
+      .select()
+      .from(sessions)
+      .orderBy(desc(sessions.lastSeen))
+      .limit(limit);
     return NextResponse.json({ sessions: result });
   } catch (error) {
     console.error('Error fetching sessions:', error);
