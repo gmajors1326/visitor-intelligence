@@ -123,7 +123,20 @@ function ResetPasswordForm() {
             minLength={8}
           />
           {error && <div className={styles.error}>{error}</div>}
-          {success && <div style={{ padding: '0.75rem', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid var(--success)', borderRadius: 'var(--radius-md)', color: 'var(--success)', fontSize: '0.875rem', textAlign: 'center' }}>{success}</div>}
+          {success && (
+            <div style={{ 
+              padding: '0.75rem', 
+              background: 'rgba(16, 185, 129, 0.1)', 
+              border: '1px solid var(--success)', 
+              borderRadius: 'var(--radius-md)', 
+              color: 'var(--success)', 
+              fontSize: '0.875rem',
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-all'
+            }}>
+              {success}
+            </div>
+          )}
           <button type="submit" className={styles.button} disabled={loading}>
             {loading ? 'Resetting...' : 'Reset Password'}
           </button>
