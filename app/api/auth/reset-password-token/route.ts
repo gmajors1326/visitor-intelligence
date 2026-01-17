@@ -1,11 +1,64 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { hash } from 'bcryptjs';
 import { getResetToken, deleteResetToken } from '../forgot-password/route';
+import { checkRateLimit, getClientIdentifier } from '@/lib/utils/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
+// Password strength validation
+function validatePasswordStrength(password: string): { valid: boolean; error?: string } {
+  if (password.length < 8) {
+    return { valid: false, error: 'Password must be at least 8 characters' };
+  }
+  
+  if (password.length > 128) {
+    return { valid: false, error: 'Password must be less than 128 characters' };
+  }
+
+  // Require at least one uppercase letter
+  if (!/[A-Z]/.test(password)) {
+    return { valid: false, error: 'Password must contain at least one uppercase letter' };
+  }
+
+  // Require at least one lowercase letter
+  if (!/[a-z]/.test(password)) {
+    return { valid: false, error: 'Password must contain at least one lowercase letter' };
+  }
+
+  // Require at least one number
+  if (!/[0-9]/.test(password)) {
+    return { valid: false, error: 'Password must contain at least one number' };
+  }
+
+  // Require at least one special character
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+    return { valid: false, error: 'Password must contain at least one special character' };
+  }
+
+  return { valid: true };
+}
+
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting for password reset (5 attempts per hour)
+    const clientId = getClientIdentifier(request);
+    const rateLimit = checkRateLimit(`reset-password:${clientId}`, {
+      windowMs: 60 * 60 * 1000, // 1 hour
+      maxRequests: 5,
+    });
+
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Too many reset attempts. Please try again later.' },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': Math.ceil((rateLimit.resetTime - Date.now()) / 1000).toString(),
+          },
+        }
+      );
+    }
+
     const { token, newPassword } = await request.json();
 
     if (!token || !newPassword) {
@@ -15,9 +68,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (newPassword.length < 8) {
+    // Validate password strength
+    const passwordValidation = validatePasswordStrength(newPassword);
+    if (!passwordValidation.valid) {
       return NextResponse.json(
-        { error: 'Password must be at least 8 characters' },
+        { error: passwordValidation.error },
         { status: 400 }
       );
     }

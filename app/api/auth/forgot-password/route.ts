@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { hash } from 'bcryptjs';
 import crypto from 'crypto';
+import { checkRateLimit, getClientIdentifier } from '@/lib/utils/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,6 +9,27 @@ export const dynamic = 'force-dynamic';
 const resetTokens = new Map<string, { token: string; expiresAt: number }>();
 
 export async function POST(request: NextRequest) {
+  // Rate limiting for forgot password (3 requests per hour)
+  const clientId = getClientIdentifier(request);
+  const rateLimit = checkRateLimit(`forgot-password:${clientId}`, {
+    windowMs: 60 * 60 * 1000, // 1 hour
+    maxRequests: 3,
+  });
+
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      {
+        success: true, // Return success to prevent enumeration
+        message: 'If the email exists, a password reset link has been sent.',
+      },
+      {
+        status: 200,
+        headers: {
+          'Retry-After': Math.ceil((rateLimit.resetTime - Date.now()) / 1000).toString(),
+        },
+      }
+    );
+  }
   try {
     const { email } = await request.json();
 
