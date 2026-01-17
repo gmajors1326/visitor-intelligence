@@ -29,6 +29,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    if (!email) {
+      return NextResponse.json({ error: 'Email required' }, { status: 400 });
+    }
+
     // Rate limiting for forgot password (3 requests per hour)
     const clientId = getClientIdentifier(request);
     const rateLimit = await checkRateLimitRedis(`forgot-password:${clientId}`, {
@@ -36,25 +40,19 @@ export async function POST(request: NextRequest) {
       maxRequests: 3,
     });
 
-  if (!rateLimit.allowed) {
-    return NextResponse.json(
-      {
-        success: true, // Return success to prevent enumeration
-        message: 'If the email exists, a password reset link has been sent.',
-      },
-      {
-        status: 200,
-        headers: {
-          'Retry-After': Math.ceil((rateLimit.resetTime - Date.now()) / 1000).toString(),
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        {
+          success: true, // Return success to prevent enumeration
+          message: 'If the email exists, a password reset link has been sent.',
         },
-      }
-    );
-  }
-  try {
-    const { email } = await request.json();
-
-    if (!email) {
-      return NextResponse.json({ error: 'Email required' }, { status: 400 });
+        {
+          status: 200,
+          headers: {
+            'Retry-After': Math.ceil((rateLimit.resetTime - Date.now()) / 1000).toString(),
+          },
+        }
+      );
     }
 
     // Validate email against admin email from environment
