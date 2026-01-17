@@ -5,6 +5,7 @@ import { eq, gte, sql, desc, count, and } from 'drizzle-orm';
 
 // Dynamic route to prevent static optimization
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 export async function GET() {
   try {
