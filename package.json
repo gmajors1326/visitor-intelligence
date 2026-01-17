@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "setup:env": "node scripts/setup-env.js",
+    "generate-password": "node scripts/generate-password-hash.js",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",

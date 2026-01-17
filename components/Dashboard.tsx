@@ -125,6 +125,12 @@ export default function Dashboard() {
           </button>
           <button
             className={styles.button}
+            onClick={() => window.location.href = '/reset-password'}
+          >
+            Reset Password
+          </button>
+          <button
+            className={styles.button}
             onClick={async () => {
               await fetch('/api/auth/logout', { method: 'POST' });
               window.location.href = '/login';

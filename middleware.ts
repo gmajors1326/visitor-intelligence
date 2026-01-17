@@ -25,6 +25,7 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/dashboard') ||
     request.nextUrl.pathname.startsWith('/sessions') ||
     request.nextUrl.pathname.startsWith('/digests') ||
+    request.nextUrl.pathname.startsWith('/reset-password') ||
     request.nextUrl.pathname === '/';
 
   if (isProtectedRoute) {
