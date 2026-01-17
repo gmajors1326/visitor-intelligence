@@ -18,13 +18,17 @@ export async function GET(request: NextRequest) {
       conditions.push(eq(alerts.severity, severity));
     }
 
-    let query = db.select().from(alerts);
+    let query = db.select().from(alerts).orderBy(desc(alerts.createdAt)).limit(limit);
     
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      const result = await db
+        .select()
+        .from(alerts)
+        .where(and(...conditions))
+        .orderBy(desc(alerts.createdAt))
+        .limit(limit);
+      return NextResponse.json({ alerts: result });
     }
-    
-    query = query.orderBy(desc(alerts.createdAt)).limit(limit);
 
     const result = await query;
     return NextResponse.json({ alerts: result });
