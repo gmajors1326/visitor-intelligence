@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { visitors, sessions, alerts } from '@/lib/db/schema';
-import { eq, gte, sql, desc, count, and } from 'drizzle-orm';
+import { eq, gte, sql, desc, count, and, isNull } from 'drizzle-orm';
 
 // Dynamic route to prevent static optimization
 export const dynamic = 'force-dynamic';
@@ -20,57 +20,57 @@ export async function GET() {
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const last24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
-    // Today's stats
+    // Today's stats (only non-deleted items)
     const todayVisitors = await db
       .select({ count: count() })
       .from(visitors)
-      .where(gte(visitors.createdAt, todayStart));
+      .where(and(gte(visitors.createdAt, todayStart), isNull(visitors.deletedAt)));
 
     const todaySessions = await db
       .select({ count: count() })
       .from(sessions)
-      .where(gte(sessions.createdAt, todayStart));
+      .where(and(gte(sessions.createdAt, todayStart), isNull(sessions.deletedAt)));
 
     const todayBots = await db
       .select({ count: count() })
       .from(visitors)
-      .where(and(gte(visitors.createdAt, todayStart), eq(visitors.isBot, true)));
+      .where(and(gte(visitors.createdAt, todayStart), eq(visitors.isBot, true), isNull(visitors.deletedAt)));
 
     const todayAI = await db
       .select({ count: count() })
       .from(visitors)
-      .where(and(gte(visitors.createdAt, todayStart), eq(visitors.isAI, true)));
+      .where(and(gte(visitors.createdAt, todayStart), eq(visitors.isAI, true), isNull(visitors.deletedAt)));
 
     const hotSessions = await db
       .select({ count: count() })
       .from(sessions)
-      .where(and(gte(sessions.lastSeen, last24Hours), eq(sessions.isHot, true)));
+      .where(and(gte(sessions.lastSeen, last24Hours), eq(sessions.isHot, true), isNull(sessions.deletedAt)));
 
     const unreadAlerts = await db
       .select({ count: count() })
       .from(alerts)
-      .where(eq(alerts.isRead, false));
+      .where(and(eq(alerts.isRead, false), isNull(alerts.deletedAt)));
 
-    // Top pages
+    // Top pages (only non-deleted)
     const topPages = await db
       .select({
         url: visitors.url,
         count: sql<number>`count(*)`.as('count'),
       })
       .from(visitors)
-      .where(gte(visitors.createdAt, todayStart))
+      .where(and(gte(visitors.createdAt, todayStart), isNull(visitors.deletedAt)))
       .groupBy(visitors.url)
       .orderBy(desc(sql<number>`count(*)`))
       .limit(10);
 
-    // Top countries
+    // Top countries (only non-deleted)
     const topCountries = await db
       .select({
         country: visitors.country,
         count: sql<number>`count(*)`.as('count'),
       })
       .from(visitors)
-      .where(and(gte(visitors.createdAt, todayStart), sql`${visitors.country} IS NOT NULL`))
+      .where(and(gte(visitors.createdAt, todayStart), sql`${visitors.country} IS NOT NULL`, isNull(visitors.deletedAt)))
       .groupBy(visitors.country)
       .orderBy(desc(sql<number>`count(*)`))
       .limit(10);

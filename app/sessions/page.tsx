@@ -78,6 +78,7 @@ export default function SessionsPage() {
                 <th>Status</th>
                 <th>First Seen</th>
                 <th>Last Seen</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -109,6 +110,24 @@ export default function SessionsPage() {
                     </td>
                     <td>{new Date(session.firstSeen).toLocaleString()}</td>
                     <td>{new Date(session.lastSeen).toLocaleString()}</td>
+                    <td>
+                      <button
+                        className={styles.button}
+                        onClick={async () => {
+                          if (confirm('Move this session to trash?')) {
+                            await fetch('/api/sessions/delete', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ id: session.id, permanent: false }),
+                            });
+                            fetchSessions();
+                          }
+                        }}
+                        style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+                      >
+                        Trash
+                      </button>
+                    </td>
                   </tr>
                 ))
               )}

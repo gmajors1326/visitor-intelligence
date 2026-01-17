@@ -21,6 +21,7 @@ export const visitors = pgTable('visitors', {
   score: integer('score').default(0),
   isHotSession: boolean('is_hot_session').default(false),
   consentGiven: boolean('consent_given').default(false),
+  deletedAt: timestamp('deleted_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 }, (table) => ({
   sessionIdx: index('session_idx').on(table.sessionId),
@@ -42,6 +43,7 @@ export const sessions = pgTable('sessions', {
   country: varchar('country', { length: 2 }),
   deviceType: varchar('device_type', { length: 50 }),
   consentGiven: boolean('consent_given').default(false),
+  deletedAt: timestamp('deleted_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => ({
@@ -60,6 +62,7 @@ export const alerts = pgTable('alerts', {
   visitorId: text('visitor_id'),
   metadata: jsonb('metadata'),
   isRead: boolean('is_read').default(false),
+  deletedAt: timestamp('deleted_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 }, (table) => ({
   typeIdx: index('alert_type_idx').on(table.type),

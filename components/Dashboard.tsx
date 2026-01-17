@@ -199,12 +199,30 @@ export default function Dashboard() {
                           <td>{alert.message}</td>
                           <td>{new Date(alert.createdAt).toLocaleString()}</td>
                           <td>
-                            <button
-                              className={styles.button}
-                              onClick={() => markAlertRead(alert.id)}
-                            >
-                              Mark Read
-                            </button>
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                              <button
+                                className={styles.button}
+                                onClick={() => markAlertRead(alert.id)}
+                              >
+                                Mark Read
+                              </button>
+                              <button
+                                className={styles.button}
+                                onClick={async () => {
+                                  if (confirm('Move this alert to trash?')) {
+                                    await fetch('/api/alerts/delete', {
+                                      method: 'POST',
+                                      headers: { 'Content-Type': 'application/json' },
+                                      body: JSON.stringify({ id: alert.id, permanent: false }),
+                                    });
+                                    setAlerts(alerts.filter(a => a.id !== alert.id));
+                                  }
+                                }}
+                                style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+                              >
+                                Trash
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}

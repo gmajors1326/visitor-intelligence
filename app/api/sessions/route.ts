@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { sessions } from '@/lib/db/schema';
-import { desc, eq, gte, and } from 'drizzle-orm';
+import { desc, eq, gte, and, isNull } from 'drizzle-orm';
 
 // Dynamic route to prevent static optimization
 export const dynamic = 'force-dynamic';
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
       const result = await db
         .select()
         .from(sessions)
-        .where(and(eq(sessions.isHot, true), gte(sessions.lastSeen, last24Hours)))
+        .where(and(eq(sessions.isHot, true), gte(sessions.lastSeen, last24Hours), isNull(sessions.deletedAt)))
         .orderBy(desc(sessions.lastSeen))
         .limit(limit);
       return NextResponse.json({ sessions: result });
@@ -27,6 +27,7 @@ export async function GET(request: NextRequest) {
     const result = await db
       .select()
       .from(sessions)
+      .where(isNull(sessions.deletedAt))
       .orderBy(desc(sessions.lastSeen))
       .limit(limit);
     return NextResponse.json({ sessions: result });

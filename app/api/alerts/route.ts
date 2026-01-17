@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { alerts } from '@/lib/db/schema';
-import { desc, eq, and } from 'drizzle-orm';
+import { desc, eq, and, isNull } from 'drizzle-orm';
 
 // Dynamic route to prevent static optimization
 export const dynamic = 'force-dynamic';
@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     const severity = searchParams.get('severity');
     const limit = parseInt(searchParams.get('limit') || '50');
 
-    const conditions = [];
+    const conditions = [isNull(alerts.deletedAt)]; // Only show non-deleted alerts
     if (isRead !== null) {
       conditions.push(eq(alerts.isRead, isRead === 'true'));
     }
@@ -22,9 +22,7 @@ export async function GET(request: NextRequest) {
       conditions.push(eq(alerts.severity, severity));
     }
 
-    let query = db.select().from(alerts).orderBy(desc(alerts.createdAt)).limit(limit);
-    
-    if (conditions.length > 0) {
+    if (conditions.length > 1) {
       const result = await db
         .select()
         .from(alerts)
@@ -34,7 +32,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ alerts: result });
     }
 
-    const result = await query;
+    const result = await db
+      .select()
+      .from(alerts)
+      .where(isNull(alerts.deletedAt))
+      .orderBy(desc(alerts.createdAt))
+      .limit(limit);
     return NextResponse.json({ alerts: result });
   } catch (error) {
     console.error('Error fetching alerts:', error);
